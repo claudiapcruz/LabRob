@@ -1,0 +1,68 @@
+/*
+  Nombre del archivo: P2_ref_pos_vel_Pastor.ino
+  Descripción: Control de motor DC con driver TB6612FNG, lectura de encóder 
+               y envío serie de referencia, posición y velocidad (cuentas/s) con millis().
+
+  Conexiones (según la tabla corregida):
+    - ESP32 D32 -> TB6612FNG AIN1
+    - ESP32 D33 -> TB6612FNG AIN2
+    - ESP32 D19 -> Cable verde (Encóder Canal A)
+    - ESP32 D18 -> Cable amarillo (Encóder Canal B)
+*/
+
+// ==========================================
+// DEFINICIÓN DE PINES
+// ==========================================
+const int PIN_PWM1 = 32; // D32 -> AIN1
+const int PIN_PWM2 = 33; // D33 -> AIN2
+
+const int PIN_ENC_A = 19; // D19 -> Cable verde (Canal A)
+const int PIN_ENC_B = 18; // D18 -> Cable amarillo (Canal B)
+
+// ==========================================
+// CONFIGURACIÓN PWM Y TIEMPOS
+// ==========================================
+const int FREQ = 1000;         // Frecuencia de 1 kHz
+const int RESOLUTION = 10;     // Resolución de 10 bits (0 a 1023)
+
+const unsigned long INTERVALO_MUESTREO = 100; // Tiempo entre lecturas en ms (100 ms)
+
+// ==========================================
+// VARIABLES GLOBALES
+// ==========================================
+volatile long contadorCuentas = 0; // Contador de pulsos del encóder
+
+int valorPWM = 0;                  // Referencia PWM recibida (-1023 a 1023)
+long posActual = 0;                // Posición angular actual en cuentas
+long posAnterior = 0;               // Posición en el ciclo anterior
+long velAngular = 0;               // Velocidad angular en cuentas/segundo
+
+unsigned long tiempoAnterior = 0;   // Almacena la última marca de tiempo
+
+// ==========================================
+// RUTINA DE INTERRUPCIÓN (ISR)
+// ==========================================
+void IRAM_ATTR ISR_Encoder() {
+  if (digitalRead(PIN_ENC_B) == HIGH) {
+    contadorCuentas++;
+  } else {
+    contadorCuentas--;
+  }
+}
+
+// ==========================================
+// SETUP
+// ==========================================
+void setup() {
+  Serial.begin(115200);
+
+  // Configuración de PWM para ESP32 Core 3.x
+  ledcAttach(PIN_PWM1, FREQ, RESOLUTION);
+  ledcAttach(PIN_PWM2, FREQ, RESOLUTION);
+
+  // Inicializar motor detenido
+  ledcWrite(PIN_PWM1, 0);
+  ledcWrite(PIN_PWM2, 0);
+
+  // Configuración de pines del encóder con pull-up interno
+  pinMode(PIN_ENC_
