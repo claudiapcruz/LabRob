@@ -1,0 +1,36 @@
+/*
+  Prueba de conmutación del encóder con motor encendido
+  Pines: D32 (AIN1), D33 (AIN2), D19 (Cable verde), D18 (Cable amarillo)
+*/
+
+const int PIN_PWM1 = 32;
+const int PIN_PWM2 = 33;
+
+const int PIN_ENC_A = 19; // Cable verde
+const int PIN_ENC_B = 18; // Cable amarillo
+
+void setup() {
+  Serial.begin(115200);
+
+  // Configuración del encóder
+  pinMode(PIN_ENC_A, INPUT_PULLUP);
+  pinMode(PIN_ENC_B, INPUT_PULLUP);
+
+  // Enciende el motor a velocidad moderada
+  ledcAttach(PIN_PWM1, 1000, 10);
+  ledcAttach(PIN_PWM2, 1000, 10);
+  ledcWrite(PIN_PWM1, 400); // Enciende el motor
+  ledcWrite(PIN_PWM2, 0);
+}
+
+void loop() {
+  int estadoA = digitalRead(PIN_ENC_A);
+  int estadoB = digitalRead(PIN_ENC_B);
+
+  Serial.print("Canal A (D19): ");
+  Serial.print(estadoA);
+  Serial.print(" | Canal B (D18): ");
+  Serial.println(estadoB);
+
+  delay(50);
+}
